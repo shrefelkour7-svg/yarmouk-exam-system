@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء خوارزمية</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 15px; direction: rtl; margin: 0; color: #0f172a; }
+        .card { background: white; max-width: 550px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .school-header { text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px; }
+        .school-name { font-size: 14px; color: #64748b; font-weight: 600; }
+        .teacher-name { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+        h2 { color: #1e3a8a; text-align: center; margin-top: 0; font-size: 19px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 15px; }
+        .progress-bar { background: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 15px; overflow: hidden; }
+        .progress-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.3s ease; }
+        .svg-container { width: 100%; max-width: 340px; margin: 10px auto; display: block; }
+        .question-box { background: #f8fafc; border-right: 4px solid #2563eb; padding: 12px; margin-top: 15px; border-radius: 6px; }
+        .option-label { display: flex; align-items: center; margin: 8px 0; cursor: pointer; font-size: 13px; background: white; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; transition: background 0.2s; }
+        .option-label:hover { background: #f1f5f9; }
+        .option-label input { margin-left: 10px; }
+        .btn { display: block; width: 100%; background: #2563eb; color: white; border: none; padding: 11px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; text-align: center; text-decoration: none; }
+        .btn:hover { background: #1d4ed8; }
+        .feedback { margin-top: 15px; padding: 11px; border-radius: 6px; font-weight: bold; display: none; text-align: center; font-size: 13px; }
+        .feedback.correct { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .feedback.incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .result-screen { text-align: center; display: none; }
+        .score-circle { width: 90px; height: 90px; border-radius: 50%; background: #1e3a8a; color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 20px auto; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="school-header">
+        <div class="school-name">مدرسة اليرموك للتعليم الأساسي والثانوي</div>
+        <div class="teacher-name">إعداد وتنسيق معلم المادة: أ. الشريف علي الكور</div>
+    </div>
+    <h2>إنشاء خوارزمية 💻</h2>
+    <div class="subtitle" id="stepCounter">السؤال 1 من 10</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="quizContent">
+        <div id="svgContainer"></div>
+        <div class="question-box">
+            <strong id="questionText" style="font-size: 14px;">جاري تحميل السؤال...</strong>
+            <div id="optionsContainer" style="margin-top: 8px;"></div>
+        </div>
+        <div id="feedback" class="feedback"></div>
+        <button id="actionBtn" class="btn" onclick="checkAnswer()">تأكيد الإجابة</button>
+    </div>
+    <div id="resultScreen" class="result-screen">
+        <h3>أحسنت! أكملت اختبار إنشاء خوارزمية بنجاح</h3>
+        <p>درجتك النهائية:</p>
+        <div class="score-circle" id="scoreText"><span style="direction: ltr; display: inline-block;">0/10</span></div>
+        
+        <div id="apiMessage" class="feedback" style="margin-bottom: 15px; display: none;"></div>
+        <a href="/" class="btn" style="background: #16a34a; margin-bottom: 10px;">العودة إلى الشاشة الرئيسية 🏠</a>
+    </div>
+</div>
+<script>
+    const quizData = [
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#1e3a8a"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">المتغيرات في الخوارزمية</text></svg>`, question: "1. ما هو التعريف البرمجي الصحيح لـ 'المتغير' (Variable) عند إنشاء خوارزمية؟", options: ["موقع في ذاكرة الحاسوب يخزن قيمة تتغير أثناء تنفيذ البرنامج", "شاشة عرض البيانات", "كابل توصيل الطاقة", "زر الخروج من النظام"], correct: 0, explain: "صحيح! المتغير هو مساحة في الذاكرة لتخزين بيانات قابلة للتغيير." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#0284c7"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">المدخلات</text></svg>`, question: "2. كيف يتم التعبير عن خطوة 'إدخال بيانات' (مثل قراءة عدد) في الخوارزمية؟", options: ["استخدام أمر مثل: اقرأ (Read) أو أدخل (Input)", "استخدام أمر الطباعة (Print)", "إغلاق البرنامج مباشرة", "حذف الملفات"], correct: 0, explain: "ممتاز! أمر الإدخال أو القراءة هو المسؤول عن استقبال بيانات المستخدم." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#16a34a"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">العمليات الحسابية</text></svg>`, question: "3. في خوارزمية لحساب مجموع عددين (X و Y)، كيف تُكتب عملية التخصيص للمجموع (Sum)؟", options: ["Sum = X + Y", "X + Y = Sum", "Print Sum", "Input Sum"], correct: 0, explain: "أحسنت! عملية التخصيص تتم بوضع الناتج في الطرف الأيمن داخل المتغير بالطرف الأيسر." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#d97706"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">الشرط والاتخاذ</text></svg>`, question: "4. عندما تتطلب الخوارزمية اختبار شرط معين (مثل هل الدرجة >= 50)، فما هي البنية المستخدمة؟", options: ["بنية الاختيار أو القرار (If / Else)", "بنية التكرار اللانهائي", "أمر الطباعة المباشرة", "حذف المتغيرات"], correct: 0, explain: "صحيح! بنية القرار (If) تُستخدم لاتخاذ مسارات مختلفة بناءً على تحقق الشرط." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#475569"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">التكرار (Loops)</text></svg>`, question: "5. إذا أردنا طباعة الأرقام من 1 إلى 100، ما هي البنية الأنسب في الخوارزمية لتجنب تكرار كتابة السطر 100 مرة؟", options: ["بنية التكرار (Loop / For / While)", "بنية الشرط البسيط", "أمر الإدخال", "إيقاف التشغيل"], correct: 0, explain: "ممتاز! التكرار يختصر مئات الأسطر في خطوات معدودة ومنظمة." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#1e3a8a"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">المخرجات</text></svg>`, question: "6. ما هو الأمر المستخدم عادة لعرض النتائج النهائية للمستخدم في الخوارزمية؟", options: ["اطبع (Print) أو اعرض (Output)", "اقرأ (Read)", "خزن (Store)", "احذف (Delete)"], correct: 0, explain: "أحسنت! أمر الطباعة أو الإخراج يظهر النتيجة النهائية على الشاشة." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#0284c7"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">تسمية المتغيرات</text></svg>`, question: "7. أي من الأسماء التالية يُعد صحيحاً ومقبولاً لتسمية متغيّر يمثل 'مساحة المستطيل'؟", options: ["Area", "123Area", "Area Name (يحتوي فراغ)", "Class"], correct: 0, explain: "صحيح! أسماء المتغيرات يجب ألا تبدأ بأرقام وألا تحتوي على فراغات." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#16a34a"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">ترتيب الخطوات</text></svg>`, question: "8. في أي ترتيب يجب أن تبدأ أي خوارزمية لحساب معدل طالب؟", options: ["البداية ➔ إدخال الدرجات ➔ حساب المعدل ➔ طباعة النتيجة ➔ النهاية", "النهاية ➔ البداية ➔ الطباعة", "طباعة النتيجة ➔ إدخال الدرجات ➔ البداية", "عشوائي دون ترتيب"], correct: 0, explain: "ممتاز! التسلسل المنطقي يبدأ بالبداية، فالمدخلات، فالمعالجة، فالمخرجات، ثم النهاية." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#d97706"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">تهيئة المتغيرات</text></svg>`, question: "9. لماذا يُعد إعطاء 'قيمة ابتدائية' (Initialization) للمتغيرات (مثل جعل المجموع = 0) أمراً هاماً؟", options: ["لتجنب تخزين قيم عشوائية قديمة موجودة في الذاكرة وتفسد الحساب", "لإيقاف تشغيل الحاسوب", "لزيادة سرعة الشاشة", "لإلغاء البرنامج"], correct: 0, explain: "أحسنت! التهيئة تضمن دقة العمليات الحسابية مثل التجميع والعدادات." },
+        { svg: `<svg class="svg-container" viewBox="0 0 320 150"><rect x="60" y="45" width="200" height="60" rx="8" fill="#1e3a8a"/><text x="160" y="80" fill="white" font-size="14" font-weight="bold" text-anchor="middle">اختبار الخوارزمية</text></svg>`, question: "10. بعد الانتهاء من كتابة خوارزمية جديدة، ما هي الخطوة العملية التي يجب إجراؤها للتأكد من خلوها من الأخطاء؟", options: ["تتبع الخوارزمية يدوياً باستخدام بيانات اختبار تجريبية (Trace Table)", "مسحها فوراً", "حفظها في سلة المهملات", "إغلاق الشاشة"], correct: 0, explain: "صحيح! التتبع بجدول البيانات التجريبية يضمن صحة الفكرة قبل البرمجة الفعلية." }
+    ];
+    let currentQ = 0, score = 0, selectedOption = null;
+    function loadQuestion() {
+        selectedOption = null;
+        const q = quizData[currentQ];
+        document.getElementById("stepCounter").innerText = `السؤال ${currentQ + 1} من ${quizData.length}`;
+        document.getElementById("progressFill").style.width = `${(currentQ / quizData.length) * 100}%`;
+        document.getElementById("svgContainer").innerHTML = q.svg;
+        document.getElementById("questionText").innerText = q.question;
+        const optionsDiv = document.getElementById("optionsContainer");
+        optionsDiv.innerHTML = "";
+        q.options.forEach((opt, idx) => {
+            optionsDiv.innerHTML += `<label class="option-label"><input type="radio" name="quizOpt" value="${idx}" onclick="selectedOption = ${idx}"> ${opt}</label>`;
+        });
+        document.getElementById("feedback").style.display = "none";
+        const btn = document.getElementById("actionBtn");
+        btn.innerText = "تأكيد الإجابة";
+        btn.onclick = checkAnswer;
+    }
+    function checkAnswer() {
+        if (selectedOption === null) { alert("يرجى اختيار إجابة أولاً!"); return; }
+        const q = quizData[currentQ], fb = document.getElementById("feedback");
+        fb.style.display = "block";
+        if (selectedOption === q.correct) { score++; fb.className = "feedback correct"; fb.innerHTML = `✅ ${q.explain}`; }
+        else { fb.className = "feedback incorrect"; fb.innerHTML = `❌ إجابة خاطئة. الإجابة الصحيحة هي: (${q.options[q.correct]})`; }
+        const btn = document.getElementById("actionBtn");
+        if (currentQ < quizData.length - 1) { btn.innerText = "السؤال التالي ➔"; btn.onclick = nextQuestion; }
+        else { btn.innerText = "عرض النتيجة النهائية 🏆"; btn.onclick = showResults; }
+    }
+    function nextQuestion() { currentQ++; loadQuestion(); }
+    
+    function showResults() {
+        document.getElementById("quizContent").style.display = "none";
+        document.getElementById("resultScreen").style.display = "block";
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepCounter").innerText = "تم اكتمال الاختبار";
+        document.getElementById("scoreText").innerHTML = `<span style="direction: ltr; display: inline-block;">${score} / ${quizData.length}</span>`;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('student_id');
+
+        if (studentId) {
+            fetch('/api/save_score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    exam_title: "إنشاء خوارزمية",
+                    score: score,
+                    max_score: quizData.length
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const apiMsg = document.getElementById("apiMessage");
+                apiMsg.style.display = "block";
+                if (data.status === 'success') {
+                    apiMsg.className = "feedback correct";
+                    apiMsg.innerText = data.message;
+                } else {
+                    apiMsg.className = "feedback incorrect";
+                    apiMsg.innerText = data.message;
+                }
+            })
+            .catch(error => { console.error('Error:', error); });
+        } else {
+            const apiMsg = document.getElementById("apiMessage");
+            apiMsg.style.display = "block";
+            apiMsg.className = "feedback incorrect";
+            apiMsg.innerText = "تنبيه: لم يتم رصد الدرجة لأن رقم الطالب مفقود في الرابط.";
+        }
+    }
+    loadQuestion();
+</script>
+</body>
+</html>

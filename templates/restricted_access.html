@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عذراً - الاختبار غير متاح</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 30px; direction: rtl; margin: 0; color: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: white; max-width: 500px; width: 100%; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; border-top: 5px solid #dc2626; }
+        h2 { color: #dc2626; margin-top: 0; font-size: 20px; }
+        p { color: #475569; font-size: 15px; line-height: 1.6; margin: 15px 0; }
+        .badge { background: #fee2e2; color: #b91c1c; padding: 10px 15px; border-radius: 8px; font-weight: bold; display: inline-block; margin: 10px 0; font-size: 14px; }
+        .btn { display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; margin-top: 20px; transition: background 0.2s; }
+        .btn:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>⚠️ عذراً، لا يمكنك دخول هذا الاختبار حالياً</h2>
+    <p>الطالب الفاضل: <strong>{{ student_name }}</strong></p>
+    <p>لقد اجتزت اختبار <strong>"{{ exam_title }}"</strong> مسبقاً بتاريخ: <br><span style="color: #1e3a8a; font-weight: bold;">{{ exam_date }}</span></p>
+    
+    <div class="badge">
+        الوقت المتبقي لإعادة الاختبار: {{ time_msg }}
+    </div>
+
+    <p style="font-size: 13px; color: #64748b;">النظام يتيح إعادة الاختبار لكل موضوع بعد مرور 7 أيام كاملة لضمان جودة التحصيل العلمي.</p>
+    
+    <br>
+    <a href="/" class="btn">العودة إلى الشاشة الرئيسية 🏠</a>
+</div>
+</body>
+</html>

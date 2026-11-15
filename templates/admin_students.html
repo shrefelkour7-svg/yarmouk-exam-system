@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المعلم - إدارة الطلبة</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; padding: 20px; direction: rtl; text-align: right; color: #1e293b; }
+        .container { max-width: 700px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h2, h3 { color: #0f172a; text-align: center; margin: 5px 0; }
+        .teacher-name { text-align: center; color: #475569; font-size: 15px; font-weight: bold; margin-bottom: 15px; }
+        label { font-weight: bold; font-size: 14px; color: #334155; display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 10px; margin: 6px 0 14px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        
+        /* إطار فصلي أنيق لعزل بيانات الطالب عن البحث */
+        .section-frame { border: 2px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-top: 15px; background: #fafafa; }
+        .section-title { font-size: 14px; font-weight: bold; color: #1e3a8a; margin-bottom: 10px; }
+
+        .buttons-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        button { flex: 1; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; color: white; transition: 0.2s; }
+        
+        /* ألوان الأزرار وتأثير التعطيل */
+        .btn-add { background: #2563eb; }
+        .btn-search { background: #0d9488; }
+        .btn-update { background: #ca8a04; }
+        .btn-delete { background: #dc2626; }
+        .btn-cancel { background: #64748b; text-decoration: none; display: inline-block; text-align: center; line-height: 20px; }
+        
+        button:disabled, .btn-disabled { background: #cbd5e1 !important; color: #64748b !important; cursor: not-allowed; }
+        
+        table { width: 100%; margin-top: 25px; border-collapse: collapse; font-size: 14px; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: center; }
+        th { background: #1e3a8a; color: white; }
+        tr:nth-child(even) { background: #f8fafc; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>مدرسة اليرموك للتعليم الأساسي - بنغازي</h2>
+    <div class="teacher-name">معلم المادة: أ. الشريف علي الكور</div>
+    <h3>لوحة إدارة قوائم الطلبة</h3>
+    <hr><br>
+
+    <form method="POST">
+        <!-- قسم البحث العلوي -->
+        <label>رقم الطالب (ID):</label>
+        <div style="display: flex; gap: 10px;">
+            <input type="number" name="student_id" value="{{ student.id if student else '' }}" placeholder="أدخل رقم الطالب للبحث..." style="flex: 3;">
+            <button type="submit" name="action" value="search" class="btn-search" style="flex: 1;" formnovalidate>بحث 🔍</button>
+        </div>
+
+        <!-- إطار مستقل لصناديق الإدخال والتعديل (الاسم والفصل) -->
+        <div class="section-frame">
+            <div class="section-title">بيانات الطالب الأساسية:</div>
+            
+            <label>اسم الطالب الثلاثي:</label>
+            <input type="text" name="full_name" value="{{ student.full_name if student else '' }}" placeholder="أدخل اسم الطالب..." required>
+            
+            <label>الفصل الدراسي:</label>
+            <select name="class_section" required>
+                <option value="">-- اختر الفصل --</option>
+                <option value="تاسع أول" {% if student and student.class_section == 'تاسع أول' %}selected{% endif %}>تاسع أول</option>
+                <option value="تاسع ثان" {% if student and student.class_section == 'تاسع ثان' %}selected{% endif %}>تاسع ثان</option>
+                <option value="تاسع ثالث" {% if student and student.class_section == 'تاسع ثالث' %}selected{% endif %}>تاسع ثالث</option>
+                <option value="تاسع رابع" {% if student and student.class_section == 'تاسع رابع' %}selected{% endif %}>تاسع رابع</option>
+                <option value="تاسع خامس" {% if student and student.class_section == 'تاسع خامس' %}selected{% endif %}>تاسع خامس</option>
+            </select>
+        </div>
+
+        <!-- أزرار التحكم والعمليات -->
+        <div class="buttons-group">
+            <button type="submit" name="action" value="add" class="btn-add" {% if is_search_mode %}disabled{% endif %}>إضافة 💾</button>
+            <button type="submit" name="action" value="update" class="btn-update" {% if not is_search_mode %}disabled{% endif %}>تعديل ✏️</button>
+            <button type="submit" name="action" value="delete" class="btn-delete" {% if not is_search_mode %}disabled{% endif %}>حذف ❌</button>
+            <a href="{{ url_for('manage_students') }}" class="btn-cancel" style="flex: 1; padding: 10px; border-radius: 6px; color: white; font-weight: bold; font-size: 14px;">إلغاء الأمر 🔄</a>
+        </div>
+    </form>
+
+    <br>
+    <h3>عرض المدخلات (قائمة الطلبة الرسمية)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>الرقم (ID)</th>
+                <th>اسم الطالب</th>
+                <th>الفصل الدراسي</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in students %}
+            <tr>
+                <td>{{ s.id }}</td>
+                <td>{{ s.full_name }}</td>
+                <td>{{ s.class_section }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="color: #64748b;">لا توجد بيانات مسجلة حالياً.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة القوائم الجماعية للطلاب - مدرسة اليرموك</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h2 {
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        select, button {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+        }
+        select {
+            width: 100%;
+            background: #fff;
+            direction: rtl;
+            text-align: right;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #1e3a8a;
+            color: white;
+        }
+        input.student-name-input {
+            width: 90%;
+            padding: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            font-size: 16px;
+            text-align: center;
+        }
+        input.student-name-input:focus {
+            border: 1px solid #3b82f6;
+            background: #fff;
+            outline: none;
+            border-radius: 4px;
+        }
+        .student-section-select {
+            padding: 6px;
+            font-size: 14px;
+            width: 100%;
+        }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        .alert-box {
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; }
+        .alert-warning { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📋 إدارة وقوائم طلاب الفصول (إدخال جماعي ونقل)</h2>
+
+    <!-- اختيار الفصل -->
+    <div class="form-group">
+        <label for="sectionSelect">اختر الفصل الدراسي:</label>
+        <select id="sectionSelect" onchange="loadStudentsForSection()">
+            <option value="">-- اختر الفصل --</option>
+            <option value="تاسع أول">تاسع أول</option>
+            <option value="تاسع ثان">تاسع ثان</option>
+            <option value="تاسع ثالث">تاسع ثالث</option>
+            <option value="تاسع رابع">تاسع رابع</option>
+            <option value="تاسع خامس">تاسع خامس</option>
+            <option value="تاسع سادس">تاسع سادس</option>
+        </select>
+    </div>
+
+    <!-- الشبكة التفاعلية (الجدول) -->
+    <div id="gridContainer" style="display: none;">
+        <p style="color: #6b7280; font-size: 14px;">💡 نصيحة: اكتب اسم الطالب واضغط `Enter` للانتقال للسطر التالي فوراً. لتعديل الفصل أو الاسم انقر عليه مباشرة.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 8%;">م</th>
+                    <th style="width: 52%;">اسم الطالب الرباعي</th>
+                    <th style="width: 25%;">الفصل الدراسي (للنقل)</th>
+                    <th style="width: 15%;">الإجراء</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+                <!-- الصفوف تضاف ديناميكياً هنا -->
+            </tbody>
+        </table>
+
+        <button class="btn-primary" onclick="saveBatch()">💾 حفظ التعديلات والقائمة دفعة واحدة</button>
+    </div>
+
+    <!-- رسائل التنبيه والنجاح -->
+    <div id="alertBox" class="alert-box"></div>
+</div>
+
+<script>
+    // قائمة الفصول المعتمدة للمقارنة وللقائمة المنسدلة
+    const availableSections = ["تاسع أول", "تاسع ثان", "تاسع ثالث", "تاسع رابع", "تاسع خامس", "تاسع سادس"];
+
+    // جلب الطلاب عند اختيار الفصل
+    function loadStudentsForSection() {
+        const section = document.getElementById('sectionSelect').value;
+        const gridContainer = document.getElementById('gridContainer');
+        
+        if (!section) {
+            gridContainer.style.display = 'none';
+            return;
+        }
+
+        gridContainer.style.display = 'block';
+        
+        fetch(`/get-students-by-section?section=${encodeURIComponent(section)}`)
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('studentsTableBody');
+                tbody.innerHTML = '';
+                
+                if (data.students && data.students.length > 0) {
+                    data.students.forEach((stu) => {
+                        // تمرير ID، الاسم، وفصل الطالب الحالي لتحديد القائمة المنسدلة بدقة
+                        addNewRow(stu.id, stu.full_name, stu.class_section || section);
+                    });
+                }
+                
+                // إضافة صف فارغ دائماً لتسهيل الإدخال الجديد
+                addNewRow();
+            })
+            .catch(err => {
+                console.error('خطأ في جلب البيانات:', err);
+                const tbody = document.getElementById('studentsTableBody');
+                tbody.innerHTML = '';
+                addNewRow();
+            });
+    }
+
+    // إضافة صف جديد للجدول (يدعم تمرير بيانات الطالب وفصله للنقل)
+    function addNewRow(id = '', fullName = '', studentSection = '') {
+        const tbody = document.getElementById('studentsTableBody');
+        const rowCount = tbody.rows.length + 1;
+        const mainSection = document.getElementById('sectionSelect').value;
+        
+        // تحديد الفصل الافتراضي للصف (فصل الطالب المخزن، أو الفصل المختار حالياً بالأعلى للجدد)
+        const currentSection = studentSection ? studentSection : mainSection;
+
+        // بناء خيارات القائمة المنسدلة للفصول
+        let optionsHtml = '';
+        availableSections.forEach(sec => {
+            const selected = (sec === currentSection) ? 'selected' : '';
+            optionsHtml += `<option value="${sec}" ${selected}>${sec}</option>`;
+        });
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${rowCount}</td>
+            <td>
+                <input type="hidden" class="student-id" value="${id}">
+                <input type="text" class="student-name-input" value="${fullName}" placeholder="أدخل اسم الطالب هنا..." onkeydown="handleKeyPress(event, this)">
+            </td>
+            <td>
+                <select class="student-section-select">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td>
+                <button type="button" class="btn-danger" onclick="removeRow(this)">حذف</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    // التعامل مع مفتاح Enter للانتقال الذكي للسطر التالي
+    function handleKeyPress(event, inputElement) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const currentRow = inputElement.closest('tr');
+            const nextRow = currentRow.nextElementSibling;
+            
+            if (nextRow) {
+                const nextInput = nextRow.querySelector('.student-name-input');
+                if (nextInput) nextInput.focus();
+            } else {
+                addNewRow();
+                const rows = document.querySelectorAll('.student-name-input');
+                rows[rows.length - 1].focus();
+            }
+        }
+    }
+
+    // حذف صف من الجدول محلياً
+    function removeRow(btn) {
+        const row = btn.closest('tr');
+        const tbody = document.getElementById('studentsTableBody');
+        if (tbody.rows.length > 1) {
+            row.remove();
+            reindexRows();
+        } else {
+            // إذا كان الصف الأخير، نقوم بتفريغه فقط بدلاً من حذفه بالكامل
+            row.querySelector('.student-id').value = '';
+            row.querySelector('.student-name-input').value = '';
+        }
+    }
+
+    // إعادة ترقيم الصفوف
+    function reindexRows() {
+        const rows = document.querySelectorAll('#studentsTableBody tr');
+        rows.forEach((row, index) => {
+            row.cells[0].innerText = index + 1;
+        });
+    }
+
+    // حفظ القائمة دفعة واحدة (مع دعم إرسال الفصل الجديد لكل طالب لتنفيذ النقل)
+    function saveBatch() {
+        const section = document.getElementById('sectionSelect').value;
+        const rows = document.querySelectorAll('#studentsTableBody tr');
+        const studentsList = [];
+
+        rows.forEach(row => {
+            const id = row.querySelector('.student-id').value;
+            const full_name = row.querySelector('.student-name-input').value.trim();
+            const rowSection = row.querySelector('.student-section-select').value; // الفصل المختار (للنقل أو الثبات)
+            
+            if (full_name !== '') {
+                studentsList.push({
+                    id: id ? parseInt(id) : null,
+                    full_name: full_name,
+                    class_section: rowSection // إرسال الفصل الخاص بهذا الصف تحديداً
+                });
+            }
+        });
+
+        fetch('/save-students-batch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                class_section: section,
+                students: studentsList
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.style.display = 'block';
+            
+            if (data.status === 'success') {
+                let msg = data.message;
+                if (data.warnings && data.warnings.length > 0) {
+                    msg += "<br><br>⚠️ <strong>تنبيهات الحماية:</strong><ul>";
+                    data.warnings.forEach(w => msg += `<li>${w}</li>`);
+                    msg += "</ul>";
+                    alertBox.className = 'alert-box alert-warning';
+                } else {
+                    alertBox.className = 'alert-box alert-success';
+                }
+                alertBox.innerHTML = msg;
+                
+                // إعادة تحميل الطلاب لتحديث الـ IDs وتوزيع الفصول الجديدة
+                setTimeout(loadStudentsForSection, 1500);
+            } else {
+                alertBox.className = 'alert-box alert-warning';
+                alertBox.innerHTML = '❌ ' + data.message;
+            }
+        })
+        .catch(err => {
+            console.error('خطأ في الاتصال:', err);
+            alert('حدث خطأ أثناء الاتصال بالسيرفر.');
+        });
+    }
+</script>
+
+</body>
+</html>

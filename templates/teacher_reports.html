@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة رصد النتائج والتقارير الشاملة - مدرسة اليرموك</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; padding: 20px; direction: rtl; margin: 0; color: #1e293b; }
+        .container { max-width: 1350px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .school-header { text-align: center; border-bottom: 2px dashed #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; }
+        .school-name { font-size: 18px; color: #1e3a8a; font-weight: bold; }
+        .teacher-name { font-size: 14px; color: #64748b; margin-top: 5px; }
+        
+        .dashboard-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .control-group { display: flex; align-items: center; gap: 10px; }
+        .control-group label { font-weight: bold; font-size: 14px; color: #334155; }
+        .control-group select, .control-group input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; outline: none; }
+        
+        .btn-print { background: #2563eb; color: white; border: none; padding: 9px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-print:hover { background: #1d4ed8; }
+
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; text-align: center; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px 8px; }
+        th { background: #e2e8f0; color: #1e293b; font-weight: bold; font-size: 12px; }
+        tr:nth-child(even) { background: #f8fafc; }
+        tr:hover { background: #f1f5f9; }
+        
+        .student-name { text-align: right; font-weight: 600; color: #0f172a; }
+        .score-val { font-family: monospace; font-weight: bold; color: #059669; }
+        .score-zero { color: #94a3b8; }
+        .total-badge { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 20px; font-weight: bold; }
+        
+        @media print {
+            .dashboard-controls, .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; }
+            table { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="school-header">
+        <div class="school-name">مدرسة اليرموك للتعليم الأساسي والثانوي - بنغازي</div>
+        <div class="teacher-name">سجل درجات وتقارير الطلاب الشاملة (إشراف أ. الشريف علي الكور)</div>
+    </div>
+
+    <!-- أدوات الفرز والتحكم (للفصول والبحث) -->
+    <div class="dashboard-controls no-print">
+        <div class="control-group">
+            <label for="classFilter">📂 اختر الفصل الدراسي:</label>
+            <select id="classFilter" onchange="filterTable()">
+                <option value="all">جميع الفصول الدراسية</option>
+                {% for sec in sections %}
+                <option value="{{ sec }}">{{ sec }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="searchInput">🔍 البحث عن طالب:</label>
+            <input type="text" id="searchInput" placeholder="ابحث بالاسم أو رقم القيد..." onkeyup="filterTable()">
+        </div>
+
+        <button class="btn-print" onclick="window.print()">🖨️ طباعة التقرير المعروض</button>
+    </div>
+
+    <div class="table-responsive">
+        <table id="reportsTable">
+            <thead>
+                <tr>
+                    <th>رقم القيد</th>
+                    <th style="text-align: right;">اسم الطالب</th>
+                    <th>الفصل</th>
+                    <th>خطوات حل المشكلة</th>
+                    <th>مفهوم الخوارزمية</th>
+                    <th>إنشاء خوارزمية</th>
+                    <th>مفهوم المخططات</th>
+                    <th>إنشاء المخططات</th>
+                    <th>ترتيب الخوارزميات</th>
+                    <th>اكتشاف الأخطاء</th>
+                    <th>تتبع الخوارزميات</th>
+                    <th>المجموع</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in students_data %}
+                <tr data-class="{{ row.class_name }}" data-name="{{ row.name }}" data-id="{{ row.id }}">
+                    <td>{{ row.id }}</td>
+                    <td class="student-name">{{ row.name }}</td>
+                    <td><span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px;">{{ row.class_name }}</span></td>
+                    
+                    <!-- درجات الاختبارات الثمانية -->
+                    <td class="{% if row.scores.p1 is not none %}score-val{% else %}score-zero{% endif %}">{{ row.scores.p1 if row.scores.p1 is not none else '-' }}</td>
+                    <td class="{% if row.scores.p2 is not none %}score-val{% else %}score-zero{% endif %}">{{ row.scores.p2 if row.scores.p2 is not none else '-' }}</td>
+                    <td class="{% if row.scores.p3 is not none %}score-val{% else %}score-zero{% endif %}">{{ row.scores.p3 if row.scores.p3 is not none else '-' }}</td>
+                    <td class="{% if row.scores.p4 is not none %}score-val{% else %}score-zero{% endif %}">{{ row.scores.p4 if row.scores.p4 is not none else '-' }}</td>
+                    <td class="{% if row.scores.p5 is not none %}score-val{% else %}score-zero{% endif %}">{{ row.scores.p5 if row.scores.p5 is not none else '-' }}</td>
+                    <td class="{% if row.scores.p6 is not none %}score-val{% else %}score-zero{% endif %}">{{ row.scores.p6 if row.scores.p6 is not none else '-' }}</td>
+                    <td class="{% if row.scores.p7 is not none %}score-val{% else %}score-zero{% endif %}">{{ row.scores.p7 if row.scores.p7 is not none else '-' }}</td>
+                    <td class="{% if row.scores.p8 is not none %}score-val{% else %}score-zero{% endif %}">{{ row.scores.p8 if row.scores.p8 is not none else '-' }}</td>
+                    
+                    <td><span class="total-badge">{{ row.total }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="12" style="padding: 20px; color: #64748b;">لا توجد بيانات مسجلة للطلاب حتى الآن.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 25px; text-align: center;" class="no-print">
+        <a href="/" style="background: #475569; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none; font-weight: bold;">العودة للرئيسية 🏠</a>
+    </div>
+</div>
+
+<script>
+    // دالة الفرز الفوري حسب الفصل أو البحث عن طالب
+    function filterTable() {
+        const selectedClass = document.getElementById("classFilter").value;
+        const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+        const rows = document.querySelectorAll("#reportsTable tbody tr");
+
+        rows.forEach(row => {
+            if (row.dataset.class === undefined) return; // تجاوز صف "لا توجد بيانات"
+
+            const studentClass = row.getAttribute("data-class");
+            const studentName = row.getAttribute("data-name").toLowerCase();
+            const studentId = row.getAttribute("data-id").toLowerCase();
+
+            const matchesClass = (selectedClass === "all" || studentClass === selectedClass);
+            const matchesSearch = (studentName.includes(searchQuery) || studentId.includes(searchQuery));
+
+            if (matchesClass && matchesSearch) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الاختبار الإلكتروني - مدرسة اليرموك</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --accent-gold: #fbbf24;
+            --accent-cyan: #38bdf8;
+            --accent-green: #10b981;
+            --border-color: #334155;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            direction: rtl;
+        }
+        .container { max-width: 800px; margin: auto; }
+        .header {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 { color: var(--accent-gold); margin: 0 0 5px 0; font-size: 1.2rem; }
+        .header p { color: var(--accent-cyan); margin: 0; font-size: 0.95rem; font-weight: bold; }
+        
+        .question-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 15px;
+        }
+        .question-card h3 { margin: 0 0 12px 0; font-size: 1rem; color: #f8fafc; }
+        .options label {
+            display: block;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .options label:hover { background: rgba(56, 189, 248, 0.1); }
+        .options input { margin-left: 10px; }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            background: var(--accent-green);
+            color: #0f172a;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .btn-submit:hover { transform: scale(1.02); background: #059669; }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .back-link:hover { color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🏫 مدرسة اليرموك للتعليم الأساسي - بنغازي</h1>
+        <p id="exam-title-text">اختبار إلكتروني مرصود</p>
+    </div>
+
+    <!-- أسئلة الاختبار -->
+    <div id="quiz-container">
+        <!-- يتم تعبئة الأسئلة برمجياً هنا -->
+    </div>
+
+    <button class="btn-submit" onclick="submitExam()">إنهاء الاختبار ورصد الدرجة 📋</button>
+    <a href="/" class="back-link">⬅ إلغاء والعودة إلى الفهرس المركزي</a>
+</div>
+
+<script>
+    // بنك الأسئلة الشامل لكافة المواضيع
+    const examsBank = {
+        'problem_steps': {
+            title: 'اختبار: خطوات حل المشكلة',
+            questions: [
+                { q: "ما هي الخطوة الأولى والأساسية في حل أي مسألة برمجية؟", options: ["كتابة الكود البرمجي", "تحديد وفهم المشكلة بدقة (المدخلات والمخرجات)", "تشغيل الحاسوب", "حفظ الملف على القرص"], correct: 1 },
+                { q: "البيانات والمعطيات المتوفرة لدينا قبل بدء الحل تسمى:", options: ["المدخلات (Inputs)", "المخرجات (Outputs)", "العمليات الحسابية", "التخزين المؤقت"], correct: 0 },
+                { q: "المعلومات أو النتائج التي نهدف للوصول إليها في نهاية المسألة تسمى:", options: ["المدخلات", "المخرجات (Outputs)", "المتغيرات", "الشروط"], correct: 1 }
+            ]
+        },
+        'algo_concept': {
+            title: 'اختبار: مفهوم الخوارزميات',
+            questions: [
+                { q: "ما هو التعريف الدقيق للخوارزمية (Algorithm)؟", options: ["لغة برمجية معقدة", "مجموعة من الخطوات المنطقية والمرتبة خطوة بخطوة لحل مسألة", "نوع من الأجهزة الذكية", "برنامج تصميم هندسي"], correct: 1 },
+                { q: "من أهم شروط الخوارزمية الناجحة أن تكون خطواتها:", options: ["مبهمة وغير واضحة", "عشوائية وغير مرتبة", "واضحة ومحددة ولها نهاية", "طويلة جداً"], correct: 2 },
+                { q: "تم إطلاق اسم الخوارزمية نسبة إلى العالم المسلم:", options: ["الخوارزمي", "ابن الهيثم", "الخوارزمي (محمد بن موسى)", "الجبري"], correct: 2 }
+            ]
+        },
+        'algo_create': {
+            title: 'اختبار: إنشاء خوارزمية',
+            questions: [
+                { q: "في خوارزمية حساب مجموع عددين (A و B)، الخطوة الأولى دائماً تكون:", options: ["طباعة النتيجة", "إدخال قيمة A و B", "الببداية (Start)", "القسمة على 2"], correct: 2 },
+                { q: "العملية الرياضية (Sum = X + Y) في الخوارزمية تعتبر مرحلة:", options: ["إدخال", "معالجة (Processing)", "طباعة", "نهاية"], correct: 1 }
+            ]
+        },
+        'flow_concept': {
+            title: 'اختبار: مفهوم المخططات الانسيابية',
+            questions: [
+                { q: "ما هو الشكل الهندسي المستخدم للتعبير عن (العمليات الحسابية والمعالجة)؟", options: ["المستطيل", "متوازي الأضلاع", "المعين", "الدائرة"], correct: 0 },
+                { q: "الشكل الهندسي المستخدم لعمليات (الإدخال والإخراج) هو:", options: ["المستطيل", "متوازي الأضلاع", "المعين", "الشكل البيضاوي"], correct: 1 },
+                { q: "الشكل البيضاوي في المخططات الانسيابية يمثل:", options: ["اتخاذ قرار", "بداية أو نهاية المخطط", "حساب ناتج", "توصيل الأسلاك"], correct: 1 }
+            ]
+        },
+        'flow_create': {
+            title: 'اختبار: إنشاء مخططات انسيابية',
+            questions: [
+                { q: "الشكل الهندسي المستخدم لاتخاذ القرار وفحص الشروط (مثل: هل X أكبر من 5؟) هو:", options: ["المستطيل", "المعين (Rhombus)", "متوازي الأضلاع", "الدائرة"], correct: 1 },
+                { q: "عند وجود شرط في المخطط الانسيابي، تخرج منه عادة مسارات بناءً على:",options: ["نعم / لا (True / False)", "أعلى / أسفل", "يمين فقط", "بدون مسارات"], correct: 0 }
+            ]
+        },
+        'algorithms_track': {
+            title: 'اختبار: تتبع تنفيذ الخوارزميات',
+            questions: [
+                { q: "إذا كانت X = 3 ثم أضفنا لها 4 (X = X + 4)، فكم تصبح قيمة X النهائية؟", options: ["3", "4", "7", "12"], correct: 2 },
+                { q: "إذا كان لدينا المتغير A = 10 و B = 5، وتم تنفيذ العملية (A = A - B)، تصبح قيمة A:", options: ["5", "10", "15", "0"], correct: 0 }
+            ]
+        },
+        'algorithms_drag': {
+            title: 'اختبار: ترتيب الخوارزميات',
+            questions: [
+                { q: "ما هو الترتيب الصحيح لبناء أي برنامج خوارزمي بسيط؟", options: ["المعالجة ثم الإدخال ثم البداية", "البداية ⬅ الإدخال ⬅ المعالجة ⬅ الإخراج ⬅ النهاية", "النهاية ثم البداية", "الإخراج ثم الإدخال"], correct: 1 }
+            ]
+        },
+        'flowchart_errors': {
+            title: 'اختبار: اكتشاف الأخطاء في المخططات',
+            questions: [
+                { q: "إذا تم استخدام (المستطيل) لعملية إدخال قيمة سين (Input X)، يعتبر هذا الخطأ:", options: ["خطأ هندسي (يجب استخدام متوازي الأضلاع)", "خطأ صحيح ولا مشكلة فيه", "خطأ فيزيائي", "ليس خطأ"], correct: 0 },
+                { q: "عدم إغلاق المخطط الانسيابي بشكل صحيح بـ (نهاية / End) يعتبر:", options: ["خطأ في التسلسل المنطقي للخوارزمية", "ميزة إضافية", "توفير للوقت", "صحيح تماماً"], correct: 0 }
+            ]
+        }
+    };
+
+    // استخراج اسم الموضوع من مسار الرابط
+    const pathSegments = window.location.pathname.split('/');
+    const examKey = pathSegments[pathSegments.length - 1];
+
+    // جلب بيانات الاختبار أو افتراضي
+    const currentExam = examsBank[examKey] || {
+        title: 'اختبار نظري وعملي عام',
+        questions: [
+            { q: "ما هي لغة البرمجة الأساسية المدروسة في منهج الحاسوب؟", options: ["باثون / خوارزميات", "اللغة العربية", "الرياضيات البحته", "التاريخ"], correct: 0 }
+        ]
+    };
+
+    document.getElementById('exam-title-text').innerText = currentExam.title;
+
+    // توليد الأسئلة في الصفحة
+    const container = document.getElementById('quiz-container');
+    let htmlContent = '';
+    
+    currentExam.questions.forEach((item, index) => {
+        htmlContent += `
+            <div class="question-card" data-correct="${item.correct}">
+                <h3>السؤال ${index + 1}: ${item.q}</h3>
+                <div class="options">
+        `;
+        item.options.forEach((opt, optIndex) => {
+            htmlContent += `
+                <label>
+                    <input type="radio" name="q${index}" value="${optIndex}"> ${opt}
+                </label>
+            `;
+        });
+        htmlContent += `</div></div>`;
+    });
+    container.innerHTML = htmlContent;
+
+    // استخراج رقم الطالب (student_id) من رابط الـ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get('student_id');
+
+    // دالة إرسال ورصد النتيجة
+    function submitExam() {
+        if (!studentId) {
+            alert('⚠️ تنبيه: لم يتم تحديد اسم الطالب! الرجاء العودة للفهرس واختيار الطالب والفصل أولاً.');
+            window.location.href = '/';
+            return;
+        }
+
+        let score = 0;
+        const cards = document.querySelectorAll('.question-card');
+        
+        cards.forEach((card, index) => {
+            const correctAnswer = parseInt(card.getAttribute('data-correct'));
+            const selectedOption = card.querySelector(`input[name="q${index}"]:checked`);
+            if (selectedOption && parseInt(selectedOption.value) === correctAnswer) {
+                score++;
+            }
+        });
+
+        const maxScore = cards.length;
+
+        // إرسال النتيجة إلى سيرفر بايثون عبر API مع فحص الـ 7 أيام
+        fetch('/api/save_score', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: studentId,
+                exam_title: currentExam.title,
+                score: score,
+                max_score: maxScore
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(`✅ ${data.message}`);
+                window.location.href = '/';
+            } else {
+                alert(`❌ ${data.message}`);
+                window.location.href = '/';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء الاتصال بقاعدة البيانات.');
+        });
+    }
+</script>
+
+</body>
+</html>

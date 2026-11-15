@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اكتشاف الأخطاء (نماذج تفاعلية)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 15px; direction: rtl; margin: 0; color: #0f172a; }
+        .card { background: white; max-width: 650px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .school-header { text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px; }
+        .school-name { font-size: 14px; color: #64748b; font-weight: 600; }
+        .teacher-name { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+        h2 { color: #7c3aed; text-align: center; margin-top: 0; font-size: 19px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 15px; }
+        .progress-bar { background: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 15px; overflow: hidden; }
+        .progress-fill { background: #7c3aed; height: 100%; width: 0%; transition: width 0.3s ease; }
+        
+        .code-box { background: #1e293b; color: #f8fafc; padding: 18px; border-radius: 8px; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 15px; text-align: right; margin-bottom: 15px; line-height: 1.8; border-right: 4px solid #7c3aed; }
+        .instruction-box { background: #f5f3ff; border: 1px solid #ddd6fe; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; color: #5b21b6; font-size: 14px; text-align: center; }
+        
+        .options-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .option-btn { background: #f8fafc; border: 2px solid #cbd5e1; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; text-align: right; transition: all 0.2s; color: #334155; }
+        .option-btn:hover { background: #e2e8f0; border-color: #7c3aed; }
+        .option-btn.selected { background: #ede9fe; border-color: #7c3aed; color: #5b21b6; }
+        
+        .btn { display: block; width: 100%; background: #7c3aed; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; text-align: center; text-decoration: none; }
+        .btn:hover { background: #6d28d9; }
+        
+        .feedback { margin-top: 15px; padding: 11px; border-radius: 6px; font-weight: bold; display: none; test-align: center; font-size: 13px; text-align: center; }
+        .feedback.correct { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .feedback.incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        
+        .result-screen { text-align: center; display: none; }
+        .score-circle { width: 90px; height: 90px; border-radius: 50%; background: #7c3aed; color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 20px auto; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="school-header">
+        <div class="school-name">مدرسة اليرموك للتعليم الأساسي - بنغازي</div>
+        <div class="teacher-name">إعداد وتنسيق معلم المادة: أ. الشريف علي الكور</div>
+    </div>
+    <h2>اكتشاف الأخطاء الهندسية والمنطقية 🔍</h2>
+    <div class="subtitle" id="stepCounter">جاري التحميل...</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    
+    <div id="quizContent">
+        <div class="instruction-box" id="challengeTitle">حدد نوع الخطأ أو العيب في المخطط أو الخوارزمية التالية:</div>
+        <div class="code-box" id="codeSnippet"></div>
+        
+        <div class="options-container" id="optionsContainer"></div>
+
+        <div id="feedback" class="feedback"></div>
+        <button id="actionBtn" class="btn" onclick="checkAnswer()">تأكيد الإجابة ➔</button>
+    </div>
+
+    <div id="resultScreen" class="result-screen">
+        <h3>أحسنت! أكملت اختبار اكتشاف الأخطاء بنجاح</h3>
+        <p>درجتك النهائية:</p>
+        <div class="score-circle" id="scoreText"><span style="direction: ltr; display: inline-block;">0/10</span></div>
+        
+        <div id="apiMessage" class="feedback" style="margin-bottom: 15px; display: none;"></div>
+        <a href="/" class="btn" style="background: #2563eb; margin-bottom: 10px;">العودة إلى الشاشة الرئيسية 🏠</a>
+    </div>
+</div>
+
+<script>
+    const challenges = [
+        {
+            title: "المرحلة 1: خطأ في استخدام الرموز الهندسية",
+            code: "الوصف: تم استخدام رمز (متوازي الأضلاع) لتمثيل عملية حسابية بحتة (س = أ + ب) داخل مخططسير البيانات.",
+            options: ["استخدام صحيح تماماً", "خطأ هندسي: المتوازي يخصص لعمليات الإدخال والإخراج وليس الحساب", "خطأ هندسي: المتوازي يمثل اتخاذ قرار", "لا يوجد خطأ"],
+            correct: "خطأ هندسي: المتوازي يخصص لعمليات الإدخال والإخراج وليس الحساب"
+        },
+        {
+            title: "المرحلة 2: خطأ منطقي في حلقة التكرار",
+            code: "الوصف: خوارزمية لطباعة الأعداد من 1 إلى 5، ولكن شرط الاستمرار مكتوب هكذا: (العداد > 5) والعداد يبدأ من 1.",
+            options: ["الشرط صحيح وسيتوقف عند 5", "خطأ منطقي: الشرط خاطئ ولن تبدأ الحلقة أبداً لأن 1 ليس أكبر من 5", "خطأ في اسم المتغير", "لا يوجد خطأ"],
+            correct: "خطأ منطقي: الشرط خاطئ ولن تبدأ الحلقة أبداً لأن 1 ليس أكبر من 5"
+        },
+        {
+            title: "المرحلة 3: خطأ في رمز اتخاذ القرار",
+            code: "الوصف: تم استخدام رمز (المستطيل) للتعبير عن سؤال شرطي (هل س > 10؟) له تفريعان (نعم / لا).",
+            options: ["صحيح لأن المستطيل للأسئلة", "خطأ هندسي: الأسئلة والشروط تمثل برمز معين (المعين) وليس المستطيل", "خطأ في اتجاه الأسهم", "لا يوجد خطأ"],
+            correct: "خطأ هندسي: الأسئلة والشروط تمثل برمز معين (المعين) وليس المستطيل"
+        },
+        {
+            title: "المرحلة 4: خطأ في نقطة البداية والنهاية",
+            code: "الوصف: مخطط سير عمليات تبدأ برمز المستطيل مباشرة بدون رمز البيضاوي المخصص للبداية والنهاية.",
+            options: ["تصميم صحيح", "خطأ تنظيمي: يجب أن تبدأ وتنتهي المخططات برمز البيضاوي (Terminal)", "خطأ في العمليات الحسابية", "لا يوجد خطأ"],
+            correct: "خطأ تنظيمي: يجب أن تبدأ وتنتهي المخططات برمز البيضاوي (Terminal)"
+        },
+        {
+            title: "المرحلة 5: خطأ في ترتيب عمليات الإدخال",
+            code: "الوصف: خوارزمية تقوم بطبع ناتج مجموع عددين قبل طلب إدخال قيمتهما من المستخدم.",
+            options: ["ترتيب صحيح ومنطقي", "خطأ منطقي: لا يمكن إجراء عملية حسابية وطباعة النتيجة قبل إدخال البيانات المطلوبة", "خطأ في صياغة الجملة", "لا يوجد خطأ"],
+            correct: "خطأ منطقي: لا يمكن إجراء عملية حسابية وطباعة النتيجة قبل إدخال البيانات المطلوبة"
+        },
+        {
+            title: "المرحلة 6: خطأ حلقة تكرار لا نهائية (منطقة عمياء)",
+            code: "الوصف: خوارزمية فيها عداد يبدأ من 5 وينقص بمقدار 1 في كل خطوة، وشرط التوقف هو عندما يصبح العداد أكبر من 10.",
+            options: ["حلقة تنتهي بنجاح", "خطأ منطقي: حلقة لا نهائية لأن العداد يتناقص ولن يصل أبداً لأكبر من 10 صعوداً", "خطأ في الرموز", "لا يوجد خطأ"],
+            correct: "خطأ منطقي: حلقة لا نهائية لأن العداد يتناقص ولن يصل أبداً لأكبر من 10 صعوداً"
+        },
+        {
+            title: "المرحلة 7: خطأ في اسم المتغير المعرف",
+            code: "الوصف: تم تسمية متغير بهذه الطريقة (1st_Student) لتخزين درجات الطلاب.",
+            options: ["تسمية صحيحة وقانونية", "خطأ برمجي: لا يجوز أن تبدأ أسماء المتغيرات برقم صريح في البرمجة", "خطأ في نوع البيانات", "لا يوجد خطأ"],
+            correct: "خطأ برمجي: لا يجوز أن تبدأ أسماء المتغيرات برقم صريح في البرمجة"
+        },
+        {
+            title: "المرحلة 8: خطأ في اتجاه الأسهم الرابطة",
+            code: "الوصف: سهم الربط بين الرموز في مخطط سير العمليات يشير للأعلى والأسفل عشوائياً بدون رأس سهم يوضح الاتجاه العام.",
+            options: ["الاتجاه غير مهم", "خطأ هندسي: يجب أن تكون الأسهم واضحة باتجاه واحد (عادة من الأعلى للأسفل أو اليمين لليسار) لتحديد سير التنفيذ", "هذا تصميم حديث", "لا يوجد خطأ"],
+            correct: "خطأ هندسي: يجب أن تكون الأسهم واضحة باتجاه واحد (عادة من الأعلى للأسفل أو اليمين لليسار) لتحديد سير التنفيذ"
+        },
+        {
+            title: "المرحلة 9: خطأ في عملية القسمة المنطقية",
+            code: "الوصف: خوارزمية تقسم على المتغير (م) وفي مرحلة معينة أصبحت قيمة (م) تساوي صفر (0).",
+            options: ["عملية مقبولة رياضياً", "خطأ رياضي منطقي: القسمة على الصفر تؤدي لانهيار البرنامج أو خطأ غير معرف", "خطأ في شكل المعين", "لا يوجد خطأ"],
+            correct: "خطأ رياضي منطقي: القسمة على الصفر تؤدي لانهيار البرنامج أو خطأ غير معرف"
+        },
+        {
+            title: "المرحلة 10: خطأ إملائي أو دلالي في مخرجات البيانات",
+            code: "الوصف: خوارزمية تطبع عبارة (المجموع = ) ولكنها نسيت وضع اسم المتغير الذي يحمل المجموع بجانبها.",
+            options: ["طباعة صحيحة", "خطأ منطقي: ستظهر العبارة فارغة من القيمة الحسابية المطلوبة لعدم ربطها بمتغير المجموع", "خطأ في لون الصندوق", "لا يوجد خطأ"],
+            correct: "خطأ منطقي: ستظهر العبارة فارغة من القيمة الحسابية المطلوبة لعدم ربطها بمتغير المجموع"
+        }
+    ];
+
+    let currentStage = 0;
+    let score = 0;
+    let selectedOption = null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get('student_id');
+
+    function loadChallenge() {
+        const challenge = challenges[currentStage];
+        document.getElementById("stepCounter").innerText = `المرحلة ${currentStage + 1} من ${challenges.length}`;
+        document.getElementById("progressFill").style.width = `${((currentStage) / challenges.length) * 100}%`;
+        document.getElementById("challengeTitle").innerText = challenge.title;
+        document.getElementById("codeSnippet").innerHTML = challenge.code;
+        
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("actionBtn").innerText = "تأكيد الإجابة ➔";
+        selectedOption = null;
+
+        const optionsContainer = document.getElementById("optionsContainer");
+        optionsContainer.innerHTML = "";
+
+        challenge.options.forEach(option => {
+            const btn = document.createElement("div");
+            btn.className = "option-btn";
+            btn.innerText = option;
+            btn.onclick = function() {
+                document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+                selectedOption = option;
+            };
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer() {
+        if (!selectedOption) {
+            alert("⚠️ يرجى اختيار إجابة واحدة أولاً!");
+            return;
+        }
+
+        const challenge = challenges[currentStage];
+        const fb = document.getElementById("feedback");
+        fb.style.display = "block";
+
+        if (selectedOption === challenge.correct) {
+            score++;
+            fb.className = "feedback correct";
+            fb.innerHTML = "✅ إجابة دقيقة واكتشاف موفق للخطأ!";
+        } else {
+            fb.className = "feedback incorrect";
+            fb.innerHTML = `❌ إجابة غير دقيقة. الإجابة الصحيحة هي: ${challenge.correct}`;
+        }
+
+        const btn = document.getElementById("actionBtn");
+        if (currentStage < challenges.length - 1) {
+            btn.innerText = "المرحلة التالية ➔";
+            btn.onclick = nextStage;
+        } else {
+            btn.innerText = "عرض النتيجة النهائية ورصدها 🏆";
+            btn.onclick = showResults;
+        }
+    }
+
+    function nextStage() { 
+        currentStage++; 
+        document.getElementById("actionBtn").onclick = checkAnswer;
+        loadChallenge(); 
+    }
+
+    function showResults() {
+        document.getElementById("quizContent").style.display = "none";
+        document.getElementById("resultScreen").style.display = "block";
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepCounter").innerText = "تم اكتمال اختبار اكتشاف الأخطاء بنجاح";
+        document.getElementById("scoreText").innerHTML = `<span style="direction: ltr; display: inline-block;">${score} / ${challenges.length}</span>`;
+
+        if (studentId) {
+            fetch('/api/save_score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    exam_title: "اكتشاف الأخطاء",
+                    score: score,
+                    max_score: challenges.length
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const apiMsg = document.getElementById("apiMessage");
+                apiMsg.style.display = "block";
+                apiMsg.className = data.status === 'success' ? "feedback correct" : "feedback incorrect";
+                apiMsg.innerText = data.message;
+            })
+            .catch(err => console.error('Error:', err));
+        }
+    }
+
+    loadChallenge();
+</script>
+</body>
+</html>

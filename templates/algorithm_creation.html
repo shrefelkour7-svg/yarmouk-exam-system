@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تتبع تنفيذ الخوارزميات (محاكاة تفاعلية)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 15px; direction: rtl; margin: 0; color: #0f172a; }
+        .card { background: white; max-width: 650px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .school-header { text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px; }
+        .school-name { font-size: 14px; color: #64748b; font-weight: 600; }
+        .teacher-name { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+        h2 { color: #1e3a8a; text-align: center; margin-top: 0; font-size: 19px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 15px; }
+        .progress-bar { background: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 15px; overflow: hidden; }
+        .progress-fill { background: #10b981; height: 100%; width: 0%; transition: width 0.3s ease; }
+        
+        .code-box { background: #1e293b; color: #f8fafc; padding: 18px; border-radius: 8px; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 15px; text-align: right; margin-bottom: 15px; line-height: 1.8; border-right: 4px solid #10b981; }
+        .instruction-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; color: #166534; font-size: 14px; text-align: center; }
+        
+        .options-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .option-btn { background: #f8fafc; border: 2px solid #cbd5e1; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; text-align: right; transition: all 0.2s; color: #334155; }
+        .option-btn:hover { background: #e2e8f0; border-color: #10b981; }
+        .option-btn.selected { background: #d1fae5; border-color: #10b981; color: #065f46; }
+        
+        .btn { display: block; width: 100%; background: #10b981; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; text-align: center; text-decoration: none; }
+        .btn:hover { background: #059669; }
+        
+        .feedback { margin-top: 15px; padding: 11px; border-radius: 6px; font-weight: bold; display: none; text-align: center; font-size: 13px; }
+        .feedback.correct { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .feedback.incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        
+        .result-screen { text-align: center; display: none; }
+        .score-circle { width: 90px; height: 90px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 20px auto; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="school-header">
+        <div class="school-name">مدرسة اليرموك للتعليم الأساسي - بنغازي</div>
+        <div class="teacher-name">إعداد وتنسيق معلم المادة: أ. الشريف علي الكور</div>
+    </div>
+    <h2>تتبع تنفيذ الخوارزميات (محاكاة تفاعلية) ⚡</h2>
+    <div class="subtitle" id="stepCounter">جاهز للبدء</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    
+    <div id="quizContent">
+        <div class="instruction-box" id="challengeTitle">تتبع خطوات الخوارزمية التالية وأجب عن المطلوب:</div>
+        <div class="code-box" id="codeSnippet"></div>
+        
+        <div class="options-container" id="optionsContainer"></div>
+
+        <div id="feedback" class="feedback"></div>
+        <button id="actionBtn" class="btn" onclick="checkAnswer()">تأكيد الإجابة ➔</button>
+    </div>
+
+    <div id="resultScreen" class="result-screen">
+        <h3>أحسنت! أكملت محاكاة تتبع الخوارزميات بنجاح</h3>
+        <p>درجتك النهائية:</p>
+        <div class="score-circle" id="scoreText"><span style="direction: ltr; display: inline-block;">0/10</span></div>
+        
+        <div id="apiMessage" class="feedback" style="margin-bottom: 15px; display: none;"></div>
+        <a href="/" class="btn" style="background: #2563eb; margin-bottom: 10px;">العودة إلى الشاشة الرئيسية 🏠</a>
+    </div>
+</div>
+
+<script>
+    const challenges = [
+        {
+            title: "المرحلة 1: تتبع تغير قيمة المتغير الحسابي",
+            code: "1. ابدأ بتعيين قيمة المتغير (س) تساوي 5.<br>2. قم بإضافة الرقم 3 إلى قيمة (س) الحالية.<br>3. اطبع القيمة النهائية للمتغير (س).",
+            options: ["5", "8", "3", "15"],
+            correct: "8"
+        },
+        {
+            title: "المرحلة 2: تتبع تجميع القيم داخل حلقة تكرارية",
+            code: "1. اجعل المجموع الابتدائي يساوي صفر (0).<br>2. كرر عملية إضافة قيم العداد المتتالية (1 ثم 2 ثم 3) إلى المجموع.<br>3. ما هي قيمة المجموع النهائية بعد انتهاء التكرار؟",
+            options: ["3", "5", "6", "0"],
+            correct: "6"
+        },
+        {
+            title: "المرحلة 3: تتبع الهيكل الشرطي (إذا... ط وإلا...)",
+            code: "1. لدينا متغير قيمته 10.<br>2. اختبر الشرط: إذا كانت القيمة أكبر من 5، قم بضربها في 2، وإلا اطرح منها 2.<br>3. ما هي القيمة الناتجة بعد تنفيذ الشرط؟",
+            options: ["10", "8", "20", "5"],
+            correct: "20"
+        },
+        {
+            title: "المرحلة 4: حساب عدد مرات تنفيذ حلقة التكرار",
+            code: "1. عداد يبدأ العد من الصفر (0).<br>2. يرتفع العداد بمقدار 1 في كل خطوة طالما أن قيمته أقل من 4.<br>3. كم عدد المرات الإجمالية التي يتكرر فيها تنفيذ العملية؟",
+            options: ["3", "4", "5", "0"],
+            correct: "4"
+        },
+        {
+            title: "المرحلة 5: تتبع تسلسل العمليات الحسابية",
+            code: "1. لدينا العدد الأول (12) والعدد الثاني (4).<br>2. احسب ناتج قسمة العدد الأول على الثاني.<br>3. أضف الرقم 2 إلى ناتج القسمة للحصول على النتيجة النهائية.",
+            options: ["3", "5", "6", "8"],
+            correct: "5"
+        },
+        {
+            title: "المرحلة 6: تتبع باقي القسمة الصحيحة",
+            code: "1. قسمة العدد 7 على العدد 3 بالتوزيع الصحيح.<br>2. ما هو مقدار (الباقي) المتبقي بعد اكتمال مجموعات القسمة؟",
+            options: ["1", "2", "3", "0"],
+            correct: "1"
+        },
+        {
+            title: "المرحلة 7: تطبيق شرط النجاح والمكافأة",
+            code: "1. درجة الطالب الأساسية هي 50 درجة.<br>2. إذا كانت الدرجة تساوي أو تزيد عن 50، يُضاف لها 15 درجة مكافأة.<br>3. ما هي درجة الطالب النهائية بعد الفحص؟",
+            options: ["50", "65", "15", "80"],
+            correct: "65"
+        },
+        {
+            title: "المرحلة 8: تتبع حاصل الضرب المتسلسل (مضروب الأعداد)",
+            code: "1. ابدأ بـ (1).<br>2. اضرب القيمة الحالية في الأعداد بالتتابع من 1 إلى 3 (1 × 2 × 3).<br>3. ما هي القيمة النهائية الناتجة؟",
+            options: ["3", "6", "9", "1"],
+            correct: "6"
+        },
+        {
+            title: "المرحلة 9: عملية تبديل المحتويات بين صندوقين",
+            code: "1. الصندوق (أ) يحتوي على 10، والصندوق (ب) يحتوي على 20.<br>2. قمنا بتبديل محتوياتهما باستخدام وعاء مؤقت.<br>3. ما هي القيمة الجديدة لكل من (أ) و (ب) على التوالي؟",
+            options: ["أ=10، ب=20", "أ=20، ب=10", "أ=20، ب=20", "أ=10، ب=10"],
+            correct: "أ=20، ب=10"
+        },
+        {
+            title: "المرحلة 10: حلقة تكرارية بمسافة قفز محددة (خطوات)",
+            code: "1. المجموع الابتدائي يساوي 10.<br>2. أضف أرقام العد من 1 إلى 4 بحيث تزيد القفزة بمقدار 2 في كل خطوة (إضافة 1 ثم 3).<br>3. ما هو المجموع النهائي؟",
+            options: ["10", "14", "16", "13"],
+            correct: "14"
+        }
+    ];
+
+    let currentStage = 0;
+    let score = 0;
+    let selectedOption = null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get('student_id');
+
+    function loadChallenge() {
+        const challenge = challenges[currentStage];
+        document.getElementById("stepCounter").innerText = `المرحلة ${currentStage + 1} من ${challenges.length}`;
+        document.getElementById("progressFill").style.width = `${((currentStage) / challenges.length) * 100}%`;
+        document.getElementById("challengeTitle").innerText = challenge.title;
+        document.getElementById("codeSnippet").innerHTML = challenge.code;
+        
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("actionBtn").innerText = "تأكيد الإجابة ➔";
+        selectedOption = null;
+
+        const optionsContainer = document.getElementById("optionsContainer");
+        optionsContainer.innerHTML = "";
+
+        challenge.options.forEach(option => {
+            const btn = document.createElement("div");
+            btn.className = "option-btn";
+            btn.innerText = option;
+            btn.onclick = function() {
+                document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+                selectedOption = option;
+            };
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer() {
+        if (!selectedOption) {
+            alert("⚠️ يرجى اختيار إجابة واحدة أولاً!");
+            return;
+        }
+
+        const challenge = challenges[currentStage];
+        const fb = document.getElementById("feedback");
+        fb.style.display = "block";
+
+        if (selectedOption === challenge.correct) {
+            score++;
+            fb.className = "feedback correct";
+            fb.innerHTML = "✅ إجابة صحيحة ومحاكاة موفقة!";
+        } else {
+            fb.className = "feedback incorrect";
+            fb.innerHTML = `❌ إجابة غير صائبة. الإجابة الصحيحة هي: ${challenge.correct}`;
+        }
+
+        const btn = document.getElementById("actionBtn");
+        if (currentStage < challenges.length - 1) {
+            btn.innerText = "المرحلة التالية ➔";
+            btn.onclick = nextStage;
+        } else {
+            btn.innerText = "عرض النتيجة النهائية ورصدها 🏆";
+            btn.onclick = showResults;
+        }
+    }
+
+    function nextStage() { 
+        currentStage++; 
+        document.getElementById("actionBtn").onclick = checkAnswer;
+        loadChallenge(); 
+    }
+
+    function showResults() {
+        document.getElementById("quizContent").style.display = "none";
+        document.getElementById("resultScreen").style.display = "block";
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepCounter").innerText = "تم اكتمال الاختبار العملي بنجاح";
+        document.getElementById("scoreText").innerHTML = `<span style="direction: ltr; display: inline-block;">${score} / ${challenges.length}</span>`;
+
+        if (studentId) {
+            fetch('/api/save_score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    exam_title: "تتبع تنفيذ الخوارزميات",
+                    score: score,
+                    max_score: challenges.length
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const apiMsg = document.getElementById("apiMessage");
+                apiMsg.style.display = "block";
+                apiMsg.className = data.status === 'success' ? "feedback correct" : "feedback incorrect";
+                apiMsg.innerText = data.message;
+            })
+            .catch(err => console.error('Error:', err));
+        }
+    }
+
+    loadChallenge();
+</script>
+</body>
+</html>

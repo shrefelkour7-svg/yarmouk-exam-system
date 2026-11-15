@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ترتيب الخوارزميات (تفاعل بالنقر)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 15px; direction: rtl; margin: 0; color: #0f172a; }
+        .card { background: white; max-width: 650px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .school-header { text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px; }
+        .school-name { font-size: 14px; color: #64748b; font-weight: 600; }
+        .teacher-name { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+        h2 { color: #1e3a8a; text-align: center; margin-top: 0; font-size: 19px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 15px; }
+        .progress-bar { background: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 15px; overflow: hidden; }
+        .progress-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.3s ease; }
+        
+        .instruction-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; color: #1e40af; font-size: 14px; text-align: center; }
+        
+        .sorting-container { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; }
+        .list-section { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 12px; border-radius: 8px; min-height: 120px; }
+        .list-title { font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 8px; text-align: center; }
+        
+        .item-box { background: white; border: 1px solid #94a3b8; padding: 10px 14px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; user-select: none; }
+        .item-box:hover { background: #f1f5f9; border-color: #2563eb; transform: translateY(-1px); }
+        
+        .btn { display: block; width: 100%; background: #2563eb; color: white; border: none; padding: 11px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; text-align: center; text-decoration: none; }
+        .btn:hover { background: #1d4ed8; }
+        
+        .feedback { margin-top: 15px; padding: 11px; border-radius: 6px; font-weight: bold; display: none; text-align: center; font-size: 13px; }
+        .feedback.correct { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .feedback.incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        
+        .result-screen { text-align: center; display: none; }
+        .score-circle { width: 90px; height: 90px; border-radius: 50%; background: #1e3a8a; color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 20px auto; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="school-header">
+        <div class="school-name">مدرسة اليرموك للتعليم الأساسي - بنغازي</div>
+        <div class="teacher-name">إعداد وتنسيق معلم المادة: أ. الشريف علي الكور</div>
+    </div>
+    <h2>ترتيب الخوارزميات (التفاعل بالنقر) 🔄</h2>
+    <div class="subtitle" id="stepCounter">جاري التحقق من حالة الطالب...</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    
+    <div id="quizContent" style="display: none;">
+        <div class="instruction-box" id="challengeTitle">انقر على الخطوات بترتيبها المنطقي الصحيح لنقلها وتنسيقها:</div>
+        
+        <div class="sorting-container">
+            <div class="list-section" id="sourceSection">
+                <div class="list-title">الخطوات المتاحة (انقر للترتيب):</div>
+                <div id="sourceList"></div>
+            </div>
+            
+            <div class="list-section" id="targetSection" style="border-color: #2563eb; background: #eff6ff;">
+                <div class="list-title" style="color: #1e40af;">منطقة الترتيب الصحيح (انقر لإعادة الخطوة):</div>
+                <div id="targetList" style="min-height: 80px;"></div>
+            </div>
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+        <button id="actionBtn" class="btn" onclick="checkSorting()">تحقق من صحة الترتيب ➔</button>
+    </div>
+
+    <div id="resultScreen" class="result-screen">
+        <h3>أحسنت! أكملت اختبار ترتيب الخوارزميات بنجاح</h3>
+        <p>درجتك النهائية:</p>
+        <div class="score-circle" id="scoreText"><span style="direction: ltr; display: inline-block;">0/10</span></div>
+        
+        <div id="apiMessage" class="feedback" style="margin-bottom: 15px; display: none;"></div>
+        <a href="/" class="btn" style="background: #16a34a; margin-bottom: 10px;">العودة إلى الشاشة الرئيسية 🏠</a>
+    </div>
+
+    <div id="blockedScreen" style="text-align: center; display: none; padding: 20px;">
+        <h3 style="color: #b91c1c;">⚠️ تنبيه هام</h3>
+        <p id="blockedMessage" style="font-size: 15px; color: #475569; margin: 15px 0;">لقد قمت بإجراء هذا الاختبار مسبقاً ولا يمكنك إعادته.</p>
+        <a href="/" class="btn" style="background: #2563eb;">العودة إلى الشاشة الرئيسية 🏠</a>
+    </div>
+</div>
+
+<script>
+    // الـ 10 مراحل المتكاملة لترتيب الخوارزميات (بدون ترقيم في النصوص لزيادة التفكير المنطقي)
+    const challenges = [
+        {
+            title: "المرحلة 1: حساب مساحة مستطيل",
+            steps: [
+                { id: "s1", text: "البداية (Start)" },
+                { id: "s2", text: "إدخال الطول والعرض (L, W)" },
+                { id: "s3", text: "حساب المساحة (Area = L * W)" },
+                { id: "s4", text: "طباعة النتيجة (Area)" },
+                { id: "s5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["s1", "s2", "s3", "s4", "s5"]
+        },
+        {
+            title: "المرحلة 2: حساب مجموع عددين",
+            steps: [
+                { id: "c1", text: "البداية (Start)" },
+                { id: "c2", text: "إدخال العددين (X, Y)" },
+                { id: "c3", text: "حساب المجموع (Sum = X + Y)" },
+                { id: "c4", text: "طباعة المجموع (Print Sum)" },
+                { id: "c5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["c1", "c2", "c3", "c4", "c5"]
+        },
+        {
+            title: "المرحلة 3: فحص نجاح طالب (شرط الدرجة)",
+            steps: [
+                { id: "f1", text: "البداية (Start)" },
+                { id: "f2", text: "إدخال الدرجة (Grade)" },
+                { id: "f3", text: "فحص الشرط (Grade >= 50)" },
+                { id: "f4", text: "طباعة 'ناجح' إذا تحقق الشرط" },
+                { id: "f5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["f1", "f2", "f3", "f4", "f5"]
+        },
+        {
+            title: "المرحلة 4: فحص عدد موجب أو سالب",
+            steps: [
+                { id: "p1", text: "البداية (Start)" },
+                { id: "p2", text: "إدخال العدد (N)" },
+                { id: "p3", text: "فحص هل العدد أكبر من الصفر (N > 0)" },
+                { id: "p4", text: "طباعة 'عدد موجب'" },
+                { id: "p5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["p1", "p2", "p3", "p4", "p5"]
+        },
+        {
+            title: "المرحلة 5: حساب معدل ثلاثة أعداد",
+            steps: [
+                { id: "a1", text: "البداية (Start)" },
+                { id: "a2", text: "إدخال الأعداد الثلاثة (A, B, C)" },
+                { id: "a3", text: "حساب المعدل (Avg = (A + B + C) / 3)" },
+                { id: "a4", text: "طباعة النتيجة (Avg)" },
+                { id: "a5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["a1", "a2", "a3", "a4", "a5"]
+        },
+        {
+            title: "المرحلة 6: إيجاد العدد الأكبر بين عددين",
+            steps: [
+                { id: "m1", text: "البداية (Start)" },
+                { id: "m2", text: "إدخال العددين (A, B)" },
+                { id: "m3", text: "مقارنة العددين (هل A > B ؟)" },
+                { id: "m4", text: "طباعة العدد الأكبر" },
+                { id: "m5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["m1", "m2", "m3", "m4", "m5"]
+        },
+        {
+            title: "المرحلة 7: حساب محيط المربع",
+            steps: [
+                { id: "r1", text: "البداية (Start)" },
+                { id: "r2", text: "إدخال طول الضلع (L)" },
+                { id: "r3", text: "حساب المحيط (Perimeter = L * 4)" },
+                { id: "r4", text: "طباعة النتيجة (Perimeter)" },
+                { id: "r5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["r1", "r2", "r3", "r4", "r5"]
+        },
+        {
+            title: "المرحلة 8: تحويل الدقائق إلى ثوانٍ",
+            steps: [
+                { id: "t1", text: "البداية (Start)" },
+                { id: "t2", text: "إدخال عدد الدقائق (M)" },
+                { id: "t3", text: "حساب الثواني (Sec = M * 60)" },
+                { id: "t4", text: "طباعة الناتج (Sec)" },
+                { id: "t5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["t1", "t2", "t3", "t4", "t5"]
+        },
+        {
+            title: "المرحلة 9: فحص أهلية التصويت (العمر)",
+            steps: [
+                { id: "v1", text: "البداية (Start)" },
+                { id: "v2", text: "إدخال العمر (Age)" },
+                { id: "v3", text: "فحص الشرط (Age >= 18)" },
+                { id: "v4", text: "طباعة 'مؤهل للتصويت'" },
+                { id: "v5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["v1", "v2", "v3", "v4", "v5"]
+        },
+        {
+            title: "المرحلة 10: حساب السعر النهائي بعد الخصم",
+            steps: [
+                { id: "d1", text: "البداية (Start)" },
+                { id: "d2", text: "إدخال السعر الأصلي وقيمة الخصم" },
+                { id: "d3", text: "حساب السعر بعد الخصم" },
+                { id: "d4", text: "طباعة السعر النهائي" },
+                { id: "d5", text: "النهاية (End)" }
+            ],
+            correctOrder: ["d1", "d2", "d3", "d4", "d5"]
+        }
+    ];
+
+    let currentStage = 0;
+    let score = 0;
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get('student_id');
+
+    // التحقق من مسبق أو منع التكرار عند فتح الصفحة
+    function checkStudentAccess() {
+        if (!studentId) {
+            document.getElementById("stepCounter").innerText = "خطأ في بيانات الطالب";
+            document.getElementById("blockedMessage").innerText = "رقم الطالب غير موجود في الرابط.";
+            document.getElementById("blockedScreen").style.display = "block";
+            return;
+        }
+
+        // محاولة إرسال درجة فارغة أو فحص الحالة عبر الـ API للتأكد من عدم التسجيل المسبق
+        // اعتماداً على نظام الـ API لديك الذي يحظر التكرار:
+        fetch('/api/save_score', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_id: studentId,
+                exam_title: "ترتيب الخوارزميات",
+                score: -1, // قيمة وهمية للفحص فقط أو فحص مسبق
+                max_score: challenges.length
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'error' && data.message.includes('مسبقاً')) {
+                // الطالب أدى الاختبار من قبل
+                document.getElementById("stepCounter").innerText = "تم إجراء الاختبار مسبقاً";
+                document.getElementById("blockedMessage").innerText = data.message;
+                document.getElementById("blockedScreen").style.display = "block";
+            } else {
+                // السماح بالدخول وبدء المرحلة الأولى
+                document.getElementById("quizContent").style.display = "block";
+                loadChallenge();
+            }
+        })
+        .catch(err => {
+            // في حال نجاح الاتصال وعدم وجود قيد حظر مسبق يمنع الحفظ الوهمي، نفتح الاختبار مباشرة
+            document.getElementById("quizContent").style.display = "block";
+            loadChallenge();
+        });
+    }
+
+    function loadChallenge() {
+        const challenge = challenges[currentStage];
+        document.getElementById("stepCounter").innerText = `المرحلة ${currentStage + 1} من ${challenges.length}`;
+        document.getElementById("progressFill").style.width = `${((currentStage) / challenges.length) * 100}%`;
+        document.getElementById("challengeTitle").innerText = challenge.title;
+        
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("actionBtn").innerText = "تحقق من صحة الترتيب ➔";
+        document.getElementById("actionBtn").onclick = checkSorting;
+
+        let shuffledSteps = [...challenge.steps].sort(() => Math.random() - 0.5);
+        const sourceList = document.getElementById("sourceList");
+        const targetList = document.getElementById("targetList");
+        sourceList.innerHTML = "";
+        targetList.innerHTML = "";
+
+        shuffledSteps.forEach(step => {
+            sourceList.appendChild(createItemElement(step.id, step.text));
+        });
+    }
+
+    function createItemElement(id, text) {
+        const div = document.createElement("div");
+        div.className = "item-box";
+        div.id = id;
+        div.innerHTML = `<span>🔹 ${text}</span>`;
+        
+        div.onclick = function() {
+            const sourceList = document.getElementById("sourceList");
+            const targetList = document.getElementById("targetList");
+            
+            if (div.parentNode === sourceList) {
+                targetList.appendChild(div);
+            } else {
+                sourceList.appendChild(div);
+            }
+        };
+
+        return div;
+    }
+
+    function checkSorting() {
+        const targetList = document.getElementById("targetList");
+        const currentItems = Array.from(targetList.children);
+        const challenge = challenges[currentStage];
+
+        if (currentItems.length !== challenge.correctOrder.length) {
+            alert("⚠️ يرجى اختيار ونقل كافة الخطوات إلى منطقة الترتيب الصحيح أولاً!");
+            return;
+        }
+
+        const userOrder = currentItems.map(item => item.id);
+        const fb = document.getElementById("feedback");
+        fb.style.display = "block";
+
+        let isCorrect = userOrder.every((val, index) => val === challenge.correctOrder[index]);
+
+        if (isCorrect) {
+            score++;
+            fb.className = "feedback correct";
+            fb.innerHTML = "✅ أحسنت! الترتيب المنطقي للخطوات صحيح 100%.";
+        } else {
+            fb.className = "feedback incorrect";
+            fb.innerHTML = "❌ الترتيب غير صحيح. انقر على الخطوات لإرجاعها وتعديل تسلسلها.";
+        }
+
+        const btn = document.getElementById("actionBtn");
+        if (currentStage < challenges.length - 1) {
+            btn.innerText = "المرحلة التالية ➔";
+            btn.onclick = nextStage;
+        } else {
+            btn.innerText = "عرض النتيجة النهائية ورصدها 🏆";
+            btn.onclick = showResults;
+        }
+    }
+
+    function nextStage() { currentStage++; loadChallenge(); }
+
+    function showResults() {
+        document.getElementById("quizContent").style.display = "none";
+        document.getElementById("resultScreen").style.display = "block";
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepCounter").innerText = "تم اكتمال الاختبار العملي بنجاح";
+        document.getElementById("scoreText").innerHTML = `<span style="direction: ltr; display: inline-block;">${score} / ${challenges.length}</span>`;
+
+        if (studentId) {
+            fetch('/api/save_score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    exam_title: "ترتيب الخوارزميات",
+                    score: score,
+                    max_score: challenges.length
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const apiMsg = document.getElementById("apiMessage");
+                apiMsg.style.display = "block";
+                apiMsg.className = data.status === 'success' ? "feedback correct" : "feedback incorrect";
+                apiMsg.innerText = data.message;
+            })
+            .catch(err => console.error('Error:', err));
+        } else {
+            const apiMsg = document.getElementById("apiMessage");
+            apiMsg.style.display = "block";
+            apiMsg.className = "feedback incorrect";
+            apiMsg.innerText = "تنبيه: لم يتم رصد الدرجة لأن رقم الطالب مفقود في الرابط.";
+        }
+    }
+
+    // بدء التحقق عند تحميل الصفحة
+    checkStudentAccess();
+</script>
+</body>
+</html>
